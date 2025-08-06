@@ -7,6 +7,7 @@ import {
   Geography,
   Marker,
 } from "react-simple-maps";
+import { geoCentroid } from "d3-geo";
 
 const geoUrl =
   "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json";
@@ -14,19 +15,8 @@ const geoUrl =
 const API_KEY = "6d0776e3d8035b56610117583df5517b";
 const SITE = "abc7.com";
 
-// Country name → [lng, lat]
-const countryCentroids: Record<string, [number, number]> = {
-  "United States": [-95.7129, 37.0902],
-  "United Kingdom": [-3.435973, 55.378051],
-  India: [78.9629, 20.5937],
-  Canada: [-106.3468, 56.1304],
-  Australia: [133.7751, -25.2744],
-  Philippines: [121.774, 12.8797],
-  // Add more as needed...
-};
-
 export default function Home() {
-  const [data, setData] = useState<{ countryName: string; count: number }[]>([]);
+  const [data, setData] = useState<Record<string, number>>({});
 
   useEffect(() => {
     async function fetchData() {
@@ -35,14 +25,31 @@ export default function Home() {
           `https://dashapi.chartbeat.com/live/cbp2_dash/v1/?all_platforms=1&host=${SITE}&apikey=${API_KEY}`
         );
         const json = await res.json();
-        if (json.countries) {
-          const geoData = Object.entries(json.countries).map(
-            ([countryName, count]) => ({
-              countryName,
-              count: count as number,
-            })
-          );
-          setData(geoData);
+        console.log("API response:", json);
+
+        if (json.data && Array.isArray(json.data.pages)) {
+          const geoMap: Record<string, number> = {};
+
+          json.data.pages.forEach((page: any, index: number) => {
+            if (!page.stats) {
+              console.log(`Page ${index} missing stats`);
+              return;
+            }
+            if (!page.stats.geo) {
+              console.log(`Page ${index} missing stats.geo`);
+              return;
+            }
+
+            Object.entries(page.stats.geo).forEach(([country, count]) => {
+              geoMap[country] = (geoMap[country] || 0) + (count as number);
+            });
+          });
+
+          console.log("Aggregated geo data:", geoMap);
+          setData(geoMap);
+        } else {
+          console.log("No pages found in response data");
+          setData({});
         }
       } catch (error) {
         console.error("Failed to fetch data", error);
@@ -58,29 +65,36 @@ export default function Home() {
     <div style={{ width: "100vw", height: "100vh" }}>
       <ComposableMap projection="geoEqualEarth" projectionConfig={{ scale: 150 }}>
         <Geographies geography={geoUrl}>
-          {({ geographies }) =>
-            geographies.map((geo) => (
-              <Geography
-                key={geo.rsmKey}
-                geography={geo}
-                style={{
-                  default: { fill: "#DDD", stroke: "#AAA" },
-                  hover: { fill: "#F53", stroke: "#AAA" },
-                  pressed: { fill: "#E42", stroke: "#AAA" },
-                }}
-              />
-            ))
-          }
+          {({ geographies }) => (
+            <>
+              {geographies.map((geo) => (
+                <Geography
+                  key={geo.rsmKey}
+                  geography={geo}
+                  style={{
+                    default: { fill: "#DDD", stroke: "#AAA" },
+                    hover: { fill: "#F53", stroke: "#AAA" },
+                    pressed: { fill: "#E42", stroke: "#AAA" },
+                  }}
+                />
+              ))}
+              {geographies.map((geo) => {
+                const countryName = geo.properties.NAME;
+                const count = data[countryName];
+                if (!count) return null;
+
+                const centroid = geoCentroid(geo);
+                if (!centroid || centroid.some(isNaN)) return null;
+
+                return (
+                  <Marker key={geo.rsmKey} coordinates={centroid}>
+                    <circle r={Math.log(count + 1) * 3} fill="#F53" fillOpacity={0.6} />
+                  </Marker>
+                );
+              })}
+            </>
+          )}
         </Geographies>
-        {data.map(({ countryName, count }) => {
-          const coords = countryCentroids[countryName];
-          if (!coords) return null;
-          return (
-            <Marker key={countryName} coordinates={coords}>
-              <circle r={Math.log(count + 1) * 3} fill="#F53" fillOpacity={0.6} />
-            </Marker>
-          );
-        })}
       </ComposableMap>
     </div>
   );
