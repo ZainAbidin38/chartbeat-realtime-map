@@ -19,7 +19,7 @@ const mockUserData: Record<string, number> = {
   "France": 380,
   "Japan": 290,
   "Brazil": 250,
-  "India": 180,
+  "Pakistan": 180,
   "Netherlands": 160,
   "Sweden": 120,
   "Switzerland": 95,
