@@ -30,13 +30,13 @@ const mockUserData: Record<string, number> = {
 };
 */
 
-const userData = await fetchChartbeatUserData();
 
 export async function getCountryMarkers(
   url = "/countries.json", 
   markerOffset = 15
 ): Promise<CountryMarker[]> {
   try {
+    const userData = await fetchChartbeatUserData();
     const res = await fetch(url);
     
     if (!res.ok) {

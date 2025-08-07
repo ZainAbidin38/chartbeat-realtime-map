@@ -23,6 +23,14 @@ interface UseCountryMarkersReturn {
   error: string | null;
 }
 
+const HOST_OPTIONS = [
+  "abc7.com",
+  "mytimes.com",
+  "bbc.co.uk",
+  "abcnews.go.com",
+  "abc13.com",
+]
+
 function useCountryMarkers(): UseCountryMarkersReturn {
   const [markers, setMarkers] = useState<CountryMarker[]>([]);
   const [loading, setLoading] = useState(true);
@@ -50,8 +58,9 @@ function useCountryMarkers(): UseCountryMarkersReturn {
 }
 
 export default function Home() {
+  const [selectedHost, setSelectedHost] = useState(HOST_OPTIONS[0]);
   const { markers, loading, error } = useCountryMarkers();
-
+  
   if (loading) {
     return (
       <div className={`${geistSans.variable} ${geistMono.variable}`} style={{ padding: '20px', minHeight: '100vh', backgroundColor: '#0a0a0a' }}>
@@ -85,6 +94,19 @@ export default function Home() {
       </Head>
       <div className={`${geistSans.variable} ${geistMono.variable}`} style={{ padding: '20px', minHeight: '100vh', backgroundColor: '#0a0a0a' }}>
         <main style={{ maxWidth: '1200px', margin: '0 auto' }}>
+          <div style={{ marginBottom: '20px', color: '#fff' }}>
+            <label htmlFor="host-select" style={{ marginRight: 10 }}>Select Site:</label>
+            <select
+              id="host-select"
+              value={selectedHost}
+              onChange={(e) => setSelectedHost(e.target.value)}
+              style={{ padding: '6px', borderRadius: 4, border: '1px solid #444', backgroundColor: '#222', color: '#fff' }}
+            >
+              {HOST_OPTIONS.map(host => (
+                <option key={host} value={host}>{host}</option>
+              ))}
+            </select>
+          </div>
           <div style={{ width: '100%', height: '600px', background: '#1a1a1a', borderRadius: '8px', overflow: 'hidden' }}>
             <ComposableMap
               projection="geoMercator"

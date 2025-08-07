@@ -1,9 +1,9 @@
 // Helper to fetch live country-level user data from Chartbeat
-const API_KEY = process.env.API_KEY
-const SITE = process.env.SITE;
+const API_KEY = "6d0776e3d8035b56610117583df5517b"
+const SITE = "abc7.com";
 
-export async function fetchChartbeatUserData(): Promise<Record<string, number>> {
-  const res = await fetch(`https://dashapi.chartbeat.com/live/top_geo/v1/?apikey=${API_KEY}&host=${SITE}`);
+export async function fetchChartbeatUserData(host: string = "abc7.com"): Promise<Record<string, number>> {
+  const res = await fetch(`https://dashapi.chartbeat.com/live/top_geo/v1/?apikey=${API_KEY}&host=${host}`);
   const data = await res.json();
 
   // Country ISO codes like "US" => "United States"
