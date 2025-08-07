@@ -14,7 +14,7 @@ interface CountryMarker {
   name: string;
   coordinates: [number, number];
   markerOffset: number;
-  userCount?: number; // Add user count for your hackathon
+  userCount?: number; // Add user count 
 }
 
 interface UseCountryMarkersReturn {
