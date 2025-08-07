@@ -1,5 +1,6 @@
 import * as topojson from "topojson-client";
 import { geoCentroid } from "d3-geo";
+import { fetchChartbeatUserData} from "../api/fetchChartbeatUserData"; 
 
 // TypeScript interfaces
 interface CountryMarker {
@@ -9,7 +10,7 @@ interface CountryMarker {
   userCount?: number;
 }
 
-// Mock user data - replace this with actual user data
+/* Mock user data - replace this with actual user data
 const mockUserData: Record<string, number> = {
   "United States": 1250,
   "United Kingdom": 890,
@@ -27,6 +28,9 @@ const mockUserData: Record<string, number> = {
   "South Korea": 75,
   "Mexico": 60,
 };
+*/
+
+const userData = await fetchChartbeatUserData();
 
 export async function getCountryMarkers(
   url = "/countries.json", 
@@ -55,7 +59,7 @@ export async function getCountryMarkers(
     const markersWithUsers = geojson.features
       .map((feature: any) => {
         const countryName = feature.properties?.name;
-        const userCount = mockUserData[countryName];
+        const userCount = userData[countryName];
         
         // Only include countries with users
         if (!userCount || !countryName) return null;
