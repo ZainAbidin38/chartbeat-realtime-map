@@ -1,0 +1,14 @@
+.main {
+  margin: 32px;
+  display: flex;
+}
+
+.footer a {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.footer img {
+  flex-shrink: 0;
+}
