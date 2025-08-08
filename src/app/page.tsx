@@ -42,6 +42,8 @@ function useCountryMarkers(host: string): UseCountryMarkersReturn {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    let intervalId: NodeJS.Timeout;
+
     const fetchMarkers = async () => {
       try {
         setLoading(true);
@@ -57,6 +59,11 @@ function useCountryMarkers(host: string): UseCountryMarkersReturn {
     };
 
     fetchMarkers();
+    intervalId = setInterval(() => {
+    fetchMarkers();
+  }, 10000);
+
+  return () => clearInterval(intervalId); 
   }, [host]);
 
   return { markers, loading, error };
