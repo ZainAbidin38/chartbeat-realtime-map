@@ -108,10 +108,10 @@ export default function Home() {
           style={{
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'space-between', // or 'flex-start' + gap if you want closer
+            justifyContent: 'space-between', 
             marginBottom: '24px',
             gap: '150px',
-            maxWidth: '420px', // limit total width to avoid stretching too much
+            maxWidth: '420px', 
           }}
         >
           {/* Dropdown wrapper with red translucent bubble */}
@@ -138,7 +138,7 @@ export default function Home() {
                 fontSize: '20px',
                 userSelect: 'none',
                 color: '#fff',
-                minWidth: '110px', // fixed width so select aligns nicely
+                minWidth: '110px', 
               }}
             >
               Select Site:
@@ -228,7 +228,7 @@ export default function Home() {
                   {({ geographies }) =>
                     geographies.map((geo: any) => {
                       // Check if this country is active
-                      const isActive = activeCountries.has(geo.properties.name); // Adjust property if needed
+                      const isActive = activeCountries.has(geo.properties.name); 
 
                       return (
                         <Geography
