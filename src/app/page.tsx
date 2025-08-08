@@ -26,7 +26,11 @@ interface UseCountryMarkersReturn {
 
 const HOST_OPTIONS = [
   "abc7.com",
-  "mytimes.com",
+  "washingtonpost.com",
+  "cnn.com",
+  "ign.com",
+  "blog.chartbeat.com",
+  "aljazeera.net",
   "bbc.co.uk",
   "abcnews.go.com",
   "abc13.com",
@@ -311,9 +315,28 @@ export default function Home() {
               </ZoomableGroup>
             </ComposableMap>
           </div>
-          <div style={{ marginTop: '20px', color: '#666', textAlign: 'center' }}>
-            <p>Total countries with users: {markers.length}</p>
-          </div>
+          <div
+          style={{
+            marginTop: '20px',
+            color: '#fff', // white text for better contrast
+            textAlign: 'center',
+            padding: '8px 20px',
+            borderRadius: '24px',
+            backgroundColor: 'rgba(255, 76, 76, 0.15)',  // same translucent red
+            boxShadow: '0 0 15px rgba(255, 76, 76, 0.4)', // glowing red shadow
+            fontWeight: '700',
+            fontSize: '18px',
+            userSelect: 'none',
+            fontFamily: 'system-ui, sans-serif',
+            maxWidth: '300px',
+            marginLeft: 'auto',
+            marginRight: 'auto',
+          }}
+        >
+          <p style={{ margin: 0 }}>
+            Total Countries With Users: {markers.length}
+          </p>
+        </div>
         </main>
       </div>
     </>
