@@ -5,6 +5,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { useEffect, useState } from "react";
 import { ComposableMap, Geographies, Geography, Marker, ZoomableGroup } from "react-simple-maps";
 import { getCountryMarkers } from "@/utils/getCountryMarkers";
+import NumberFlow, { continuous }  from "@number-flow/react";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
@@ -31,7 +32,7 @@ const HOST_OPTIONS = [
   "abc13.com",
 ]
 
-function useCountryMarkers(): UseCountryMarkersReturn {
+function useCountryMarkers(host: string): UseCountryMarkersReturn {
   const [markers, setMarkers] = useState<CountryMarker[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -41,7 +42,7 @@ function useCountryMarkers(): UseCountryMarkersReturn {
       try {
         setLoading(true);
         setError(null);
-        const data = await getCountryMarkers();
+        const data = await getCountryMarkers(host);
         setMarkers(data);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to fetch markers');
@@ -52,14 +53,18 @@ function useCountryMarkers(): UseCountryMarkersReturn {
     };
 
     fetchMarkers();
-  }, []);
+  }, [host]);
 
   return { markers, loading, error };
 }
 
 export default function Home() {
   const [selectedHost, setSelectedHost] = useState(HOST_OPTIONS[0]);
-  const { markers, loading, error } = useCountryMarkers();
+  const { markers, loading, error } = useCountryMarkers(selectedHost);
+  // Calculate total users for display
+  const totalUsers = markers.reduce((sum, marker) => sum + (marker.userCount || 0), 0);
+  // To highlight active countries on the map
+  const activeCountries = new Set(markers.map(marker => marker.name));
   
   if (loading) {
     return (
@@ -94,20 +99,118 @@ export default function Home() {
       </Head>
       <div className={`${geistSans.variable} ${geistMono.variable}`} style={{ padding: '20px', minHeight: '100vh', backgroundColor: '#0a0a0a' }}>
         <main style={{ maxWidth: '1200px', margin: '0 auto' }}>
-          <div style={{ marginBottom: '20px', color: '#fff' }}>
-            <label htmlFor="host-select" style={{ marginRight: 10 }}>Select Site:</label>
+          {/* Container for dropdown and total users side by side */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between', // or 'flex-start' + gap if you want closer
+            marginBottom: '24px',
+            gap: '150px',
+            maxWidth: '420px', // limit total width to avoid stretching too much
+          }}
+        >
+          {/* Dropdown wrapper with red translucent bubble */}
+          <div
+            style={{
+              padding: '8px 20px',
+              borderRadius: '24px',
+              backgroundColor: 'rgba(255, 76, 76, 0.15)',
+              boxShadow: '0 0 15px rgba(255, 76, 76, 0.4)',
+              userSelect: 'none',
+              whiteSpace: 'nowrap',
+              fontFamily: 'system-ui, sans-serif',
+              flexShrink: 0,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px',
+              color: '#fff', // white text for label
+            }}
+          >
+            <label
+              htmlFor="host-select"
+              style={{
+                fontWeight: '700',
+                fontSize: '20px',
+                userSelect: 'none',
+                color: '#fff',
+                minWidth: '110px', // fixed width so select aligns nicely
+              }}
+            >
+              Select Site:
+            </label>
             <select
               id="host-select"
               value={selectedHost}
               onChange={(e) => setSelectedHost(e.target.value)}
-              style={{ padding: '6px', borderRadius: 4, border: '1px solid #444', backgroundColor: '#222', color: '#fff' }}
+              style={{
+                padding: '6px 12px',
+                borderRadius: '20px',
+                border: '1.5px solid rgba(255, 76, 76, 0.6)',
+                backgroundColor: 'rgba(255, 76, 76, 0.05)',
+                color: '#fff',
+                fontWeight: '600',
+                fontSize: '18px',
+                cursor: 'pointer',
+                minWidth: '160px',
+                boxShadow: '0 0 8px rgba(255, 76, 76, 0.3)',
+                transition: 'background-color 0.3s ease, border-color 0.3s ease',
+                appearance: 'none', // hides default arrow for cleaner look
+                outline: 'none', 
+                backgroundImage: `url("data:image/svg+xml;utf8,<svg fill='white' height='12' viewBox='0 0 24 24' width='12' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>")`,
+                backgroundRepeat: 'no-repeat',
+                backgroundPosition: 'right 12px center',
+                backgroundSize: '18px 18px',
+                paddingRight: '36px',
+              }}
+              onFocus={(e) => {
+                e.currentTarget.style.backgroundColor = 'rgba(255, 76, 76, 0.12)';
+                e.currentTarget.style.borderColor = 'rgba(255, 76, 76, 0.9)';
+                e.currentTarget.style.boxShadow = '0 0 12px rgba(255, 76, 76, 0.7)';
+                e.currentTarget.style.outline = 'none';
+              }}
+              onBlur={(e) => {
+                e.currentTarget.style.backgroundColor = 'rgba(255, 76, 76, 0.05)';
+                e.currentTarget.style.borderColor = 'rgba(255, 76, 76, 0.6)';
+                e.currentTarget.style.boxShadow = '0 0 8px rgba(255, 76, 76, 0.3)';
+                e.currentTarget.style.outline = 'none';
+              }}
             >
-              {HOST_OPTIONS.map(host => (
-                <option key={host} value={host}>{host}</option>
+              {HOST_OPTIONS.map((host) => (
+                <option key={host} value={host}>
+                  {host}
+                </option>
               ))}
             </select>
           </div>
+          {/* Total users bubble */}
+          <div
+            style={{
+              fontSize: '20px',
+              fontWeight: '700',
+              color: '#fff',
+              padding: '8px 20px',
+              borderRadius: '24px',
+              backgroundColor: 'rgba(255, 76, 76, 0.15)',
+              boxShadow: '0 0 15px rgba(255, 76, 76, 0.4)',
+              userSelect: 'none',
+              whiteSpace: 'nowrap',
+              fontFamily: 'system-ui, sans-serif',
+              flexShrink: 0,
+            }}
+          >
+            Total Active Users:{" "}
+            <NumberFlow plugins={[continuous]} value={totalUsers} />
+          </div>
+        </div>
           <div style={{ width: '100%', height: '600px', background: '#1a1a1a', borderRadius: '8px', overflow: 'hidden' }}>
+            <svg style={{ position: "absolute", width: 0, height: 0 }}>
+              <defs>
+                <filter id="red-glow" height="150%" width="150%" x="-25%" y="-25%" colorInterpolationFilters="sRGB">
+                  <feDropShadow dx="0" dy="0" stdDeviation="6" floodColor="#ff4c4c" floodOpacity="0.7" />
+                </filter>
+              </defs>
+            </svg>
             <ComposableMap
               projection="geoMercator"
               projectionConfig={{
@@ -119,35 +222,43 @@ export default function Home() {
               <ZoomableGroup>
                 <Geographies geography="/countries.json">
                   {({ geographies }) =>
-                    geographies.map((geo: any) => (
-                      <Geography 
-                        key={geo.rsmKey} 
-                        geography={geo}
-                        fill="#2d2d2d"
-                        stroke="#404040"
-                        strokeWidth={0.5}
-                        style={{
-                          default: {
-                            fill: "#2d2d2d",
-                            stroke: "#404040",
-                            strokeWidth: 0.5,
-                            outline: "none"
-                          },
-                          hover: {
-                            fill: "#3d3d3d",
-                            stroke: "#606060",
-                            strokeWidth: 0.5,
-                            outline: "none"
-                          },
-                          pressed: {
-                            fill: "#4d4d4d",
-                            stroke: "#707070",
-                            strokeWidth: 0.5,
-                            outline: "none"
-                          }
-                        }}
-                      />
-                    ))
+                    geographies.map((geo: any) => {
+                      // Check if this country is active
+                      const isActive = activeCountries.has(geo.properties.name); // Adjust property if needed
+
+                      return (
+                        <Geography
+                          key={geo.rsmKey}
+                          geography={geo}
+                          fill={isActive ? "#ff4c4c" : "#2d2d2d"}
+                          stroke="#404040"
+                          strokeWidth={0.5}
+                          style={{
+                            default: {
+                              fill: isActive ? "#ff4c4c" : "#2d2d2d",
+                              stroke: "#404040",
+                              strokeWidth: 0.5,
+                              outline: "none",
+                              filter: isActive ? "url(#red-glow)" : "none",
+                            },
+                            hover: {
+                              fill: isActive ? "#ff6666" : "#3d3d3d",
+                              stroke: "#606060",
+                              strokeWidth: 0.5,
+                              outline: "none",
+                              filter: isActive ? "url(#red-glow)" : "none",
+                            },
+                            pressed: {
+                              fill: isActive ? "#cc3333" : "#4d4d4d",
+                              stroke: "#707070",
+                              strokeWidth: 0.5,
+                              outline: "none",
+                              filter: isActive ? "url(#red-glow)" : "none",
+                            },
+                          }}
+                        />
+                      );
+                    })
                   }
                 </Geographies>
                 {markers.map(({ name, coordinates, markerOffset, userCount }) => (

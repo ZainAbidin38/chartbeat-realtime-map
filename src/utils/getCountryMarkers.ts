@@ -32,11 +32,12 @@ const mockUserData: Record<string, number> = {
 
 
 export async function getCountryMarkers(
+  host: string,
   url = "/countries.json", 
   markerOffset = 15
 ): Promise<CountryMarker[]> {
   try {
-    const userData = await fetchChartbeatUserData();
+    const userData = await fetchChartbeatUserData(host);
     const res = await fetch(url);
     
     if (!res.ok) {
