@@ -1,5 +1,5 @@
 // Helper to fetch live country-level user data from Chartbeat
-const API_KEY = "6d0776e3d8035b56610117583df5517b"
+const API_KEY = process.env.API_KEY;
 const SITE = "abc7.com";
 
 export async function fetchChartbeatUserData(host: string = "abc7.com"): Promise<Record<string, number>> {
